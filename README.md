@@ -13,11 +13,12 @@ String, integer, boolean and color resources are supported.
 
 Add the following to your app/build.gradle dependencies:
 
-        compile 'dk.youtec:remoteconfiginresources:0.0.1'
+        compile 'dk.youtec:remoteconfiginresources:0.0.2'
 
 Then you can either extend one of the RemoteConfig activities:
 
         public class MainActivity extends RemoteConfigAppCompatActivity
+        public class MainActivity extends RemoteConfigFragmentActivity
         public class MainActivity extends RemoteConfigActivity
         
 Or you can override the getResources method in your activity:
