@@ -14,10 +14,10 @@ import java.util.*
 open class RemoteConfigResources(context: Context, val res: Resources) : Resources(res.assets, res.displayMetrics, res.configuration) {
 
     private val firebaseRemoteConfig: FirebaseRemoteConfig = FirebaseRemoteConfig.getInstance()
+    val defaults: HashMap<String, Any> = HashMap()
 
     init {
         //Build defaults
-        val defaults = HashMap<String, Any>()
         defaults.putAll(extractStrings(Class.forName(context.packageName + ".R\$string")))
         defaults.putAll(extractBools(Class.forName(context.packageName + ".R\$bool")))
         defaults.putAll(extractInts(Class.forName(context.packageName + ".R\$integer")))
@@ -45,32 +45,40 @@ open class RemoteConfigResources(context: Context, val res: Resources) : Resourc
     override fun getText(@StringRes id: Int): CharSequence {
         val resourceEntryName = getResourceEntryName(id)
 
-        val value = firebaseRemoteConfig.getString(resourceEntryName)
-        return value
+        if(defaults.containsKey(resourceEntryName)) {
+            return firebaseRemoteConfig.getString(resourceEntryName)
+        }
+        return super.getText(id)
     }
 
     @Throws(Resources.NotFoundException::class)
     override fun getBoolean(@BoolRes id: Int): Boolean {
         val resourceEntryName = getResourceEntryName(id)
 
-        val boolValue = firebaseRemoteConfig.getBoolean(resourceEntryName)
-        return boolValue
+        if(defaults.containsKey(resourceEntryName)) {
+            return firebaseRemoteConfig.getBoolean(resourceEntryName)
+        }
+        return super.getBoolean(id)
     }
 
     @Throws(Resources.NotFoundException::class)
     override fun getColor(@ColorRes id: Int): Int {
         val resourceEntryName = getResourceEntryName(id)
 
-        val value = firebaseRemoteConfig.getLong(resourceEntryName)
-        return value.toInt()
+        if(defaults.containsKey(resourceEntryName)) {
+            return firebaseRemoteConfig.getLong(resourceEntryName).toInt()
+        }
+        return super.getColor(id)
     }
 
     @Throws(Resources.NotFoundException::class)
     override fun getInteger(@IntegerRes id: Int): Int {
         val resourceEntryName = getResourceEntryName(id)
 
-        val value = firebaseRemoteConfig.getLong(resourceEntryName)
-        return value.toInt()
+        if(defaults.containsKey(resourceEntryName)) {
+            return firebaseRemoteConfig.getLong(resourceEntryName).toInt()
+        }
+        return super.getInteger(id)
     }
 
     protected fun extractStrings(classToInspect: Class<*>): Map<out String, Any> {
@@ -78,13 +86,13 @@ open class RemoteConfigResources(context: Context, val res: Resources) : Resourc
         val strings = HashMap<String, Any>(allFields.size)
         for (field in allFields) {
             val name = field.name
-            if (!TextUtils.isEmpty(name)) {
+            if (!TextUtils.isEmpty(name) && "serialVersionUID" != name) {
                 val id = field.get(null) as Number?
                 if (id != null) {
                     try {
                         strings.put(name, res.getString(id.toInt()))
                     } catch (e: NotFoundException) {
-                        Log.w(TAG, e.message, e)
+                        Log.w(TAG, e.message + " Name: $name", e)
                     }
                 }
             }
@@ -97,13 +105,15 @@ open class RemoteConfigResources(context: Context, val res: Resources) : Resourc
         val map = HashMap<String, Boolean>(allFields.size)
         for (field in allFields) {
             val name = field.name
-            if (!TextUtils.isEmpty(name)) {
+            if (!TextUtils.isEmpty(name) && "serialVersionUID" != name) {
                 val id = field.get(null) as Number?
                 if (id != null) {
                     try {
-                        map.put(name, res.getBoolean(id.toInt()))
+                        val value = res.getBoolean(id.toInt())
+                        Log.d(TAG, "Bool: $name with $id has value $value")
+                        map.put(name, value)
                     } catch (e: NotFoundException) {
-                        Log.w(TAG, e.message, e)
+                        Log.w(TAG, e.message + " Name: $name", e)
                     }
                 }
             }
@@ -116,13 +126,13 @@ open class RemoteConfigResources(context: Context, val res: Resources) : Resourc
         val map = HashMap<String, Int>(allFields.size)
         for (field in allFields) {
             val name = field.name
-            if (!TextUtils.isEmpty(name)) {
+            if (!TextUtils.isEmpty(name) && "serialVersionUID" != name) {
                 val id = field.get(null) as Number?
                 if (id != null) {
                     try {
                         map.put(name, res.getInteger(id.toInt()))
                     } catch (e: NotFoundException) {
-                        Log.w(TAG, e.message, e)
+                        Log.w(TAG, e.message + " Name: $name", e)
                     }
                 }
             }
@@ -135,13 +145,13 @@ open class RemoteConfigResources(context: Context, val res: Resources) : Resourc
         val map = HashMap<String, Int>(allFields.size)
         for (field in allFields) {
             val name = field.name
-            if (!TextUtils.isEmpty(name)) {
+            if (!TextUtils.isEmpty(name) && "serialVersionUID" != name) {
                 val id = field.get(null) as Number?
                 if (id != null) {
                     try {
                         map.put(name, res.getColor(id.toInt()))
                     } catch (e: NotFoundException) {
-                        Log.w(TAG, e.message, e)
+                        Log.w(TAG, e.message + " Name: $name", e)
                     }
                 }
             }
